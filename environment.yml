@@ -1,0 +1,43 @@
+name: llms
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - python-dotenv
+  - requests
+  - numpy
+  - pandas
+  - scipy
+  - pytorch
+  - jupyterlab
+  - ipywidgets
+  - matplotlib
+  - scikit-learn
+  - chromadb
+  - jupyter-dash
+  - sentencepiece
+  - pyarrow
+  - faiss-cpu
+  - pip:
+    - beautifulsoup4
+    - plotly
+    - bitsandbytes
+    - transformers
+    - sentence-transformers
+    - datasets
+    - accelerate
+    - openai
+    - anthropic
+    - google-generativeai
+    - gradio
+    - gensim
+    - modal
+    - ollama
+    - psutil
+    - setuptools
+    - speedtest-cli
+    - langchain
+    - feedparser
+    - twilio
+    - pydub
