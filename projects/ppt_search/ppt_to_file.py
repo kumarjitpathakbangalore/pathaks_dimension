@@ -90,7 +90,7 @@ class PPTToFile:
             filename, slide_num = keys[idx]
             pdf_path = os.path.join("pdf_output", filename.replace(".pptx", ".pdf"))
             print(f"> {filename} - Slide {slide_num + 1}")
-            self.show_pdf_page(pdf_path, slide_num + 1)
+            self.display(pdf_path, slide_num + 1)
 
     def save_images(self, images, output_folder="output_images"):
         os.makedirs(output_folder, exist_ok=True)
