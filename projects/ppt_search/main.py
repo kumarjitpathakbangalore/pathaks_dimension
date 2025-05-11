@@ -38,7 +38,7 @@ def main():
     print("\n🔍 Ready for search!")
     try:
         reader = ReadJSON(file=json_file)
-        all_summaries = reader.data  # All summaries {pptx_file: [slide1, slide2, ...]}
+        all_summaries = reader.data
 
         all_slide_map = {}
         for pptx_name, slides in all_summaries.items():

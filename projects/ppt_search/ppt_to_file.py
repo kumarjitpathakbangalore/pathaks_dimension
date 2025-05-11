@@ -21,10 +21,16 @@ class PPTToFile:
             powerpoint = comtypes.client.CreateObject("PowerPoint.Application")
             powerpoint.Visible = 1
             presentation = powerpoint.Presentations.Open(self.input_pptx, WithWindow=False)
-            presentation.SaveAs(self.output_pdf, 32)
+
+            # Unhide all slides
+            for i in range(1, presentation.Slides.Count + 1):
+                presentation.Slides(i).SlideShowTransition.Hidden = False
+
+            # Export to PDF
+            presentation.SaveAs(self.output_pdf, FileFormat=32)  # 32 = PDF
             presentation.Close()
             powerpoint.Quit()
-            print(f"Saved PDF to {self.output_pdf}")
+            print(f"✅ PDF saved with all slides: {self.output_pdf}")
         except Exception as e:
             print(f"Conversion error: {e}")
 
@@ -37,7 +43,7 @@ class PPTToFile:
             page = doc.load_page(page_number - 1)
             pix = page.get_pixmap()
             img = Image.open(io.BytesIO(pix.tobytes("png")))
-            return img
+            self.display_image(img)
         except Exception as e:
             print(f"Error displaying PDF page: {e}")
             return None

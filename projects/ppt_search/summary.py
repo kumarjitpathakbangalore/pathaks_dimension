@@ -2,6 +2,9 @@ import os
 from pptx import Presentation
 import openai
 import matplotlib.pyplot as plt
+from tqdm import tqdm
+
+
 
 class SlideSummarizer:
     def __init__(self, folder_path, model="gpt-4", provider="openai", save_path=None):
@@ -48,7 +51,7 @@ class SlideSummarizer:
         if len(slide_text) > 3000:
             slide_text = slide_text[:3000] + "..."
 
-        prompt = f"Summarize the following slide content in 2 lines, do not reapeat the phrase 2-line summary in your respnse. also always give an output to the point and if you feel there is no content in the slide try to understand why the slide was put here. put special reference to what ever questions that may be asked by the user:\n\n{slide_text}"
+        prompt = f"Summarize the following slide content in 2 lines, do not repeat the phrase 2-line summary in your response. also always give an output to the point and if you feel there is no content in the slide try to understand why the slide was put here. put special reference to what ever questions that may be asked by the user:\n\n{slide_text}"
 
         try:
             if self.provider == "openai":
@@ -57,7 +60,7 @@ class SlideSummarizer:
                     messages=[{"role": "user", "content": prompt}],
                     temperature=0.3,
                 )
-                return response.choices[0].message.content.lower()
+                return response.choices[0].message.content
 
             elif self.provider == "groq":
                 response = self.client.chat.completions.create(
@@ -65,12 +68,12 @@ class SlideSummarizer:
                     messages=[{"role": "user", "content": prompt}],
                     temperature=0.3,
                 )
-                return response.choices[0].message.content.lower()
+                return response.choices[0].message.content
 
             elif self.provider == "gemini":
                 model = self.client.GenerativeModel(self.model)
                 response = model.generate_content(prompt)
-                return response.text.lower()
+                return response.text
 
         except Exception as e:
             return f"[Error summarizing slide: {e}]"
@@ -83,7 +86,7 @@ class SlideSummarizer:
         for filename, slides in extracted_texts.items():
             print(f"Summarizing {filename} with {len(slides)} slides...")
             summaries[filename] = [
-                self.summarize_slide(slide) for slide in slides
+                self.summarize_slide(slide) for slide in tqdm(slides, desc=filename)
             ]
 
         if self.save_path:
