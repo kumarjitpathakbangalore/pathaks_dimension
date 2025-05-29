@@ -42,7 +42,7 @@ Before you begin, ensure you have the following installed on your system:
         ```bash
         .\venv\Scripts\activate
         ```
-    * **macOS / Linux:**
+    * **Linux:**
         ```bash
         source venv/bin/activate
         ```
@@ -110,19 +110,19 @@ The project uses environment variables to securely access your LLM API keys.
 Organize your project files as follows:
 
 your_project_root/
-├── main.py
-├── summary.py            # Contains SlideSummarizer class
-├── read_json.py          # Contains JSONManager class (previously ReadJSON)
-├── ppt_to_file.py        # Contains PPTConverterAndSearch class (previously PPTToFile)
-├── requirements.txt
-├── pptbase/              # Create this folder
-│   └── your_presentation_1.pptx
-│   └── your_presentation_2.pptx
-│   └── ...
-├── pdf_output/           # Will be created by the script (for converted PDFs)
-├── text_output/          # Will be created by the script (for JSON summaries)
-├── output_images/        # Will be created by the script (for displayed slide images)
-└── venv/                 # Your virtual environment
+- main.py
+- summary.py             # Contains SlideSummarizer class
+- read_json.py           # Contains JSONManager class (previously ReadJSON)
+- ppt_to_file.py         # Contains PPTConverterAndSearch class (previously PPTToFile)
+- requirements.txt
+- pptbase/               # Create this folder
+  - your_presentation_1.pptx
+  - your_presentation_2.pptx
+  - ...
+- pdf_output/            # Will be created by the script (for converted PDFs)
+- text_output/           # Will be created by the script (for JSON summaries)
+- output_images/         # Will be created by the script (for displayed slide images)
+- venv/                  # Your virtual environment
 
 
 * **`pptbase/`**: Place all the PowerPoint (`.pptx`) files you want to process in this directory.
@@ -133,20 +133,73 @@ Once you have activated your virtual environment, installed dependencies, config
 
 ```bash
 python main.py
-What the Script Does:
-Converts PPTX to PDF: Iterates through pptbase/, converts each .pptx to .pdf and saves them in pdf_output/.
-Summarizes Slides: Extracts text from each slide of the .pptx files, sends the text to your chosen LLM (OpenAI, Groq, or Gemini) for a 2-line summary, and saves all summaries to text_output/slide_summaries.json.
-Prepares for Search: Loads the summaries into a format suitable for FAISS.
-Prompts for Query: Asks you to "Enter your query to find relevant slides:".
-Performs Search: Uses semantic search to find the top 3 most relevant slides based on your query.
-Displays Results: For each matching slide, it will display the actual PDF page using matplotlib.
-troubleshooting
-Conversion error: ... Hiding the application window is not allowed.: This means your PowerPoint installation doesn't allow invisible automation. Fix: In ppt_to_file.py, change powerpoint.Visible = 0 to powerpoint.Visible = 1 within the convert_pptx_to_pdf method. You will see PowerPoint windows pop up during conversion.
-Conversion error: ... The system cannot find the path specified.: This indicates PowerPoint can't locate the PPTX file. Fix: In main.py, ensure you are passing absolute paths for input_pptx_path and output_pdf_path to the convert_pptx_to_pdf method:
-Python
+```
+---
 
-input_pptx_path = os.path.abspath(os.path.join(PPTX_SOURCE_FOLDER, file))
-output_pdf_path = os.path.abspath(os.path.join(PDF_OUTPUT_FOLDER, pdf_name))
-KeyError: 'OPENAI_API_KEY environment variable not set.' (or similar for Groq/Gemini): You haven't set your API key environment variable correctly. Fix: Go back to "3. Configure API Keys" and ensure the export or set command was executed in your current terminal session before running main.py.
-No .pptx files found in 'pptbase'.: Your pptbase folder is empty or doesn't exist. Fix: Create the pptbase folder and place your .pptx files inside it.
-ModuleNotFoundError: No module named 'comtypes' (or other libraries): You haven't installed all necessary libraries. Fix: Make sure you have activated your virtual environment and run pip install -r requirements.txt.
+### What the Script Does:
+
+Here's a breakdown of the steps the `main.py` script performs when you run it:
+
+* **Converts PPTX to PDF:** The script iterates through your `pptbase/` folder. For each PowerPoint (`.pptx`) file it finds, it converts it into a PDF (`.pdf`) document, saving the result in the `pdf_output/` directory.
+* **Summarizes Slides:** It then extracts all text from the `.pptx` files. Each slide's content is sent to your chosen Large Language Model (LLM)—be it **OpenAI**, **Groq**, or **Gemini**—to generate a concise, two-line summary. These summaries are then saved into a `slide_summaries.json` file located in the `text_output/` folder.
+* **Prepares for Search:** The script loads the generated summaries and organizes them into a format optimized for the **FAISS** library, which is used for efficient similarity search.
+* **Prompts for Query:** You'll be prompted to "Enter your query to find relevant slides:". This is where you input your natural language search term.
+* **Performs Search:** Using semantic search, the script queries the indexed summaries to find the **top 3 most relevant slides** that match your input query.
+* **Displays Results:** For each identified matching slide, the script will automatically **display the actual PDF page** using `matplotlib`, providing a visual confirmation of the retrieved content.
+
+---
+
+### 🪛 Troubleshooting
+
+If you encounter any issues while running the script, refer to the common problems and their solutions below:
+
+---
+
+#### `Conversion error: ... Hiding the application window is not allowed.`
+
+* **Reason:** Your Microsoft PowerPoint installation might have security settings or a version that prevents programmatic control when attempting to run PowerPoint in a completely invisible mode.
+* **Fix:**
+    1.  Open `ppt_to_file.py`.
+    2.  Locate the line `powerpoint.Visible = 0` within the `convert_pptx_to_pdf` method.
+    3.  Change it to `powerpoint.Visible = 1`.
+    * **Note:** After this change, you will see PowerPoint windows briefly pop up on your screen as each conversion takes place.
+
+---
+
+#### `Conversion error: ... The system cannot find the path specified.`
+
+* **Reason:** PowerPoint is unable to locate the `.pptx` file even though the Python script might be passing what looks like a correct path. This often happens if relative paths are used, and PowerPoint's internal working directory differs from your script's.
+* **Fix:** In `main.py`, ensure that you are providing **absolute paths** for both the input PPTX file and the output PDF file when calling the `convert_pptx_to_pdf` method. Update the relevant section as follows:
+
+    ```python
+    input_pptx_path = os.path.abspath(os.path.join(PPTX_SOURCE_FOLDER, file))
+    output_pdf_path = os.path.abspath(os.path.join(PDF_OUTPUT_FOLDER, pdf_name))
+    ```
+
+---
+
+#### `KeyError: 'OPENAI_API_KEY environment variable not set.'` (or similar for Groq/Gemini)
+
+* **Reason:** The script relies on environment variables to access your LLM API keys securely, and the required variable hasn't been set in your current terminal session.
+* **Fix:**
+    1.  Go back to the **"3. Configure API Keys"** section in the `README.md`.
+    2.  Make sure you have executed the appropriate `export` (for macOS/Linux) or `set` (`PowerShell`/`CMD` for Windows) command for your chosen LLM provider **in the same terminal window** *before* running `python main.py`.
+
+---
+
+#### `No .pptx files found in 'pptbase'.`
+
+* **Reason:** The `pptbase` folder either does not exist or is empty.
+* **Fix:**
+    1.  **Create** a folder named `pptbase` in your project's root directory.
+    2.  **Place** all the `.pptx` files you wish to process inside this newly created `pptbase` folder.
+
+---
+
+#### `ModuleNotFoundError: No module named 'comtypes'` (or other libraries)
+
+* **Reason:** One or more of the necessary Python libraries are not installed in your active virtual environment.
+* **Fix:**
+    1.  Ensure your virtual environment is **activated**.
+    2.  Navigate to your project's root directory (where `requirements.txt` is located).
+    3.  Run the command: `pip install -r requirements.txt` to install all required dependencies.
